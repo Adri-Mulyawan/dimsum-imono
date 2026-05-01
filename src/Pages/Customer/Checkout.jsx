@@ -114,6 +114,8 @@ ${form.note || "-"}`;
       return;
     }
 
+    const whatsappWindow = window.open("", "_blank");
+
     try {
       setIsSubmitting(true);
 
@@ -141,10 +143,13 @@ ${form.note || "-"}`;
       setStorage("orders", [savedOrder, ...oldOrders]);
 
       const message = encodeURIComponent(buildWhatsappMessage());
-      window.open(
-        `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${message}`,
-        "_blank"
-      );
+      const whatsappUrl = `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${message}`;
+
+      if (whatsappWindow) {
+        whatsappWindow.location.href = whatsappUrl;
+      } else {
+        window.location.href = whatsappUrl;
+      }
 
       removeStorage("cart");
       window.dispatchEvent(new Event("cartUpdated"));
@@ -154,6 +159,11 @@ ${form.note || "-"}`;
       navigate("/success");
     } catch (error) {
       console.error(error);
+
+      if (whatsappWindow) {
+        whatsappWindow.close();
+      }
+
       toast.error("Gagal membuat pesanan. Coba lagi.");
     } finally {
       setIsSubmitting(false);
@@ -228,7 +238,7 @@ ${form.note || "-"}`;
                 name="method"
                 value={form.method}
                 onChange={handleChange}
-                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:ring-2 focus:ring-red-700"
               >
                 <option>Ambil di toko</option>
                 <option>Delivery</option>
@@ -256,7 +266,7 @@ ${form.note || "-"}`;
                   value={form.address}
                   onChange={handleChange}
                   placeholder="Masukkan alamat lengkap"
-                  className="h-28 w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
+                  className="h-28 w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:ring-2 focus:ring-red-700"
                 />
               </div>
             )}
@@ -306,7 +316,7 @@ ${form.note || "-"}`;
                 value={form.note}
                 onChange={handleChange}
                 placeholder="Contoh: saus dipisah, tidak pedas, dll"
-                className="h-28 w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
+                className="h-28 w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:ring-2 focus:ring-red-700"
               />
             </div>
 
