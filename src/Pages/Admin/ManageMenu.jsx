@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Swal from "sweetalert2";
 import toast from "react-hot-toast";
 
@@ -22,8 +22,24 @@ const ManageMenu = () => {
   const [form, setForm] = useState(initialForm);
   const [editId, setEditId] = useState(null);
   const [showForm, setShowForm] = useState(false);
+  const [search, setSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("Semua");
 
   const categoryOptions = categories.filter((category) => category !== "Semua");
+
+  const filteredMenus = useMemo(() => {
+    return menus.filter((menu) => {
+      const matchSearch = menu.name.toLowerCase().includes(search.toLowerCase());
+      const matchCategory =
+        categoryFilter === "Semua" || menu.category === categoryFilter;
+
+      return matchSearch && matchCategory;
+    });
+  }, [menus, search, categoryFilter]);
+
+  const activeMenus = menus.filter((menu) => menu.isAvailable);
+  const inactiveMenus = menus.filter((menu) => !menu.isAvailable);
+  const outOfStockMenus = menus.filter((menu) => Number(menu.stock) <= 0);
 
   const resetForm = () => {
     setForm(initialForm);
@@ -108,6 +124,8 @@ const ManageMenu = () => {
       rating: menu.rating || 4.5,
       isAvailable: menu.isAvailable,
     });
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const handleDelete = async (menuId) => {
@@ -140,13 +158,15 @@ const ManageMenu = () => {
 
   return (
     <section>
-      <div className="mb-6 flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 className="text-3xl font-bold text-red-900">Kelola Menu</h1>
-          <p className="text-gray-600">
-            Tambah, edit, hapus, dan atur ketersediaan menu.
-          </p>
-        </div>
+      <div className="mb-6 overflow-hidden rounded-[2rem] bg-gradient-to-r from-red-900 to-orange-700 p-8 text-white shadow-xl">
+        <p className="font-bold uppercase tracking-[0.25em] text-orange-200">
+          Kelola Menu
+        </p>
+        <h1 className="mt-3 text-4xl font-black">Menu Dimsum Imono</h1>
+        <p className="mt-3 max-w-2xl text-orange-100">
+          Tambah, edit, hapus, dan atur ketersediaan menu yang tampil di halaman
+          pelanggan.
+        </p>
 
         <button
           onClick={() => {
@@ -154,24 +174,58 @@ const ManageMenu = () => {
             setEditId(null);
             setForm(initialForm);
           }}
-          className="rounded-xl bg-red-800 px-5 py-3 font-semibold text-white hover:bg-red-900"
+          className="mt-6 rounded-2xl bg-white px-6 py-4 font-black text-red-900 transition hover:bg-orange-50"
         >
-          Tambah Menu
+          + Tambah Menu Baru
         </button>
+      </div>
+
+      <div className="mb-6 grid gap-5 md:grid-cols-3">
+        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-orange-100">
+          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">
+            Total Menu
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-red-900">
+            {menus.length}
+          </h2>
+        </div>
+
+        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-orange-100">
+          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">
+            Menu Aktif
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-green-700">
+            {activeMenus.length}
+          </h2>
+        </div>
+
+        <div className="rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-orange-100">
+          <p className="text-sm font-bold uppercase tracking-wide text-gray-500">
+            Stok Habis
+          </p>
+          <h2 className="mt-2 text-3xl font-black text-red-700">
+            {outOfStockMenus.length}
+          </h2>
+        </div>
       </div>
 
       {showForm && (
         <form
           onSubmit={handleSubmit}
-          className="mb-6 rounded-2xl bg-white p-6 shadow"
+          className="mb-6 rounded-[2rem] bg-white p-6 shadow-sm ring-1 ring-orange-100 md:p-8"
         >
-          <h2 className="mb-4 text-xl font-bold text-gray-900">
-            {editId ? "Edit Menu" : "Tambah Menu"}
-          </h2>
+          <div className="mb-6">
+            <p className="font-bold uppercase tracking-[0.25em] text-red-700">
+              {editId ? "Edit Menu" : "Tambah Menu"}
+            </p>
+            <h2 className="mt-2 text-3xl font-black text-gray-950">
+              {editId ? "Perbarui data menu" : "Masukkan menu baru"}
+            </h2>
+          </div>
 
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-5 md:grid-cols-2">
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Nama Menu
               </label>
               <input
@@ -179,19 +233,19 @@ const ManageMenu = () => {
                 value={form.name}
                 onChange={handleChange}
                 placeholder="Contoh: Dimsum Ayam"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Kategori
               </label>
               <select
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               >
                 {categoryOptions.map((category) => (
                   <option key={category}>{category}</option>
@@ -200,7 +254,7 @@ const ManageMenu = () => {
             </div>
 
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Harga
               </label>
               <input
@@ -209,26 +263,24 @@ const ManageMenu = () => {
                 value={form.price}
                 onChange={handleChange}
                 placeholder="15000"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
-                Stok
-              </label>
+              <label className="mb-2 block font-bold text-gray-800">Stok</label>
               <input
                 type="number"
                 name="stock"
                 value={form.stock}
                 onChange={handleChange}
                 placeholder="20"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Icon / Emoji
               </label>
               <input
@@ -236,12 +288,12 @@ const ManageMenu = () => {
                 value={form.image}
                 onChange={handleChange}
                 placeholder="🥟"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
             <div>
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Rating
               </label>
               <input
@@ -251,12 +303,12 @@ const ManageMenu = () => {
                 value={form.rating}
                 onChange={handleChange}
                 placeholder="4.5"
-                className="w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
             <div className="md:col-span-2">
-              <label className="mb-1 block font-semibold text-gray-700">
+              <label className="mb-2 block font-bold text-gray-800">
                 Deskripsi
               </label>
               <textarea
@@ -264,26 +316,26 @@ const ManageMenu = () => {
                 value={form.description}
                 onChange={handleChange}
                 placeholder="Deskripsi singkat menu"
-                className="h-24 w-full rounded-xl border px-4 py-3 outline-none focus:ring-2 focus:ring-red-700"
+                className="h-28 w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
               />
             </div>
 
-            <label className="flex items-center gap-2 font-semibold text-gray-700">
+            <label className="flex items-center gap-3 rounded-2xl bg-orange-50 p-4 font-bold text-gray-800">
               <input
                 type="checkbox"
                 name="isAvailable"
                 checked={form.isAvailable}
                 onChange={handleChange}
-                className="h-4 w-4"
+                className="h-5 w-5"
               />
-              Menu tersedia
+              Menu tersedia untuk pelanggan
             </label>
           </div>
 
-          <div className="mt-5 flex gap-3">
+          <div className="mt-6 flex flex-wrap gap-3">
             <button
               type="submit"
-              className="rounded-xl bg-red-800 px-5 py-3 font-semibold text-white hover:bg-red-900"
+              className="rounded-2xl bg-red-800 px-6 py-4 font-black text-white shadow-md transition hover:-translate-y-1 hover:bg-red-900"
             >
               {editId ? "Simpan Perubahan" : "Tambah Menu"}
             </button>
@@ -291,7 +343,7 @@ const ManageMenu = () => {
             <button
               type="button"
               onClick={resetForm}
-              className="rounded-xl bg-gray-100 px-5 py-3 font-semibold text-gray-700 hover:bg-gray-200"
+              className="rounded-2xl bg-gray-100 px-6 py-4 font-black text-gray-700 hover:bg-gray-200"
             >
               Batal
             </button>
@@ -299,66 +351,136 @@ const ManageMenu = () => {
         </form>
       )}
 
-      <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-        {menus.map((menu) => (
-          <article key={menu.id} className="rounded-2xl bg-white p-5 shadow">
-            <div className="flex items-start justify-between">
-              <div className="text-5xl">{menu.image}</div>
-              <span
-                className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                  menu.isAvailable
-                    ? "bg-green-100 text-green-700"
-                    : "bg-gray-100 text-gray-600"
-                }`}
-              >
-                {menu.isAvailable ? "Tersedia" : "Nonaktif"}
-              </span>
-            </div>
+      <div className="mb-6 rounded-[2rem] bg-white p-5 shadow-sm ring-1 ring-orange-100">
+        <div className="grid gap-4 md:grid-cols-[1fr_240px]">
+          <input
+            type="text"
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Cari nama menu..."
+            className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
+          />
 
-            <h2 className="mt-4 text-xl font-bold text-gray-900">
-              {menu.name}
-            </h2>
-            <p className="mt-1 text-sm text-gray-500">{menu.category}</p>
-            <p className="mt-2 min-h-12 text-sm text-gray-600">
-              {menu.description}
-            </p>
+          <select
+            value={categoryFilter}
+            onChange={(event) => setCategoryFilter(event.target.value)}
+            className="w-full rounded-2xl border border-orange-200 bg-orange-50 px-5 py-4 font-medium outline-none transition focus:bg-white focus:ring-2 focus:ring-red-700"
+          >
+            {categories.map((category) => (
+              <option key={category}>{category}</option>
+            ))}
+          </select>
+        </div>
 
-            <div className="mt-4 flex items-center justify-between">
-              <div>
-                <p className="text-lg font-bold text-red-800">
-                  {formatCurrency(menu.price)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Stok: {menu.stock} • Rating: {menu.rating}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              <button
-                onClick={() => handleEdit(menu)}
-                className="rounded-lg bg-orange-100 px-3 py-2 text-sm font-semibold text-red-800 hover:bg-orange-200"
-              >
-                Edit
-              </button>
-
-              <button
-                onClick={() => handleToggleAvailability(menu.id)}
-                className="rounded-lg bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-700 hover:bg-blue-200"
-              >
-                {menu.isAvailable ? "Nonaktifkan" : "Aktifkan"}
-              </button>
-
-              <button
-                onClick={() => handleDelete(menu.id)}
-                className="rounded-lg bg-red-100 px-3 py-2 text-sm font-semibold text-red-800 hover:bg-red-200"
-              >
-                Hapus
-              </button>
-            </div>
-          </article>
-        ))}
+        <p className="mt-3 text-sm font-semibold text-gray-500">
+          Menampilkan {filteredMenus.length} dari {menus.length} menu. Menu
+          nonaktif: {inactiveMenus.length}
+        </p>
       </div>
+
+      {filteredMenus.length === 0 ? (
+        <div className="rounded-[2rem] bg-white p-10 text-center shadow-sm ring-1 ring-orange-100">
+          <div className="text-6xl">🔍</div>
+          <p className="mt-4 text-xl font-black text-gray-800">
+            Menu tidak ditemukan.
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+          {filteredMenus.map((menu) => (
+            <article
+              key={menu.id}
+              className="overflow-hidden rounded-[2rem] bg-white shadow-sm ring-1 ring-orange-100 transition hover:-translate-y-1 hover:shadow-xl"
+            >
+              <div className="bg-gradient-to-br from-orange-100 to-red-50 p-6">
+                <div className="flex items-start justify-between">
+                  <div className="flex h-24 w-24 items-center justify-center rounded-3xl bg-white text-6xl shadow-inner">
+                    {menu.image}
+                  </div>
+
+                  <span
+                    className={`rounded-full px-3 py-1 text-xs font-black ${
+                      menu.isAvailable
+                        ? "bg-green-100 text-green-700"
+                        : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+                    {menu.isAvailable ? "Tersedia" : "Nonaktif"}
+                  </span>
+                </div>
+              </div>
+
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-black text-gray-950">
+                      {menu.name}
+                    </h2>
+                    <p className="mt-1 text-sm font-bold text-red-700">
+                      {menu.category}
+                    </p>
+                  </div>
+
+                  <span className="rounded-full bg-yellow-100 px-3 py-1 text-xs font-black text-yellow-800">
+                    ⭐ {menu.rating}
+                  </span>
+                </div>
+
+                <p className="mt-3 min-h-12 text-sm leading-6 text-gray-600">
+                  {menu.description}
+                </p>
+
+                <div className="mt-5 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-orange-50 p-4">
+                    <p className="text-xs font-bold text-gray-500">Harga</p>
+                    <p className="mt-1 font-black text-red-800">
+                      {formatCurrency(menu.price)}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl bg-orange-50 p-4">
+                    <p className="text-xs font-bold text-gray-500">Stok</p>
+                    <p
+                      className={`mt-1 font-black ${
+                        Number(menu.stock) <= 0
+                          ? "text-red-700"
+                          : "text-gray-950"
+                      }`}
+                    >
+                      {Number(menu.stock) <= 0 ? "Habis" : menu.stock}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-5 grid gap-2">
+                  <button
+                    onClick={() => handleEdit(menu)}
+                    className="rounded-2xl bg-orange-100 px-4 py-3 text-sm font-black text-red-800 hover:bg-orange-200"
+                  >
+                    Edit Menu
+                  </button>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <button
+                      onClick={() => handleToggleAvailability(menu.id)}
+                      className="rounded-2xl bg-blue-100 px-4 py-3 text-sm font-black text-blue-700 hover:bg-blue-200"
+                    >
+                      {menu.isAvailable ? "Nonaktifkan" : "Aktifkan"}
+                    </button>
+
+                    <button
+                      onClick={() => handleDelete(menu.id)}
+                      className="rounded-2xl bg-red-100 px-4 py-3 text-sm font-black text-red-800 hover:bg-red-200"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </section>
   );
 };

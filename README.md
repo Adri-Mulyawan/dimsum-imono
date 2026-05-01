@@ -1,16 +1,64 @@
-# React + Vite
+# Dimsum Imono
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Dimsum Imono adalah aplikasi web pemesanan makanan berbasis React untuk toko dimsum kecil. Pelanggan dapat melihat menu, menambahkan pesanan ke keranjang, checkout, memilih metode pembayaran, lalu mengirim pesanan langsung ke WhatsApp toko.
 
-Currently, two official plugins are available:
+## Fitur Pelanggan
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- Melihat daftar menu
+- Search menu
+- Filter kategori
+- Detail menu dengan modal
+- Pilih jumlah pesanan
+- Tambah ke keranjang
+- Ubah jumlah item di keranjang
+- Validasi stok
+- Checkout
+- Pilih metode pengambilan
+- Pilih metode pembayaran
+- Estimasi waktu pesanan
+- Kirim pesanan ke WhatsApp
+- Halaman pesanan berhasil
+- Floating cart button untuk mobile
 
-## React Compiler
+## Fitur Admin
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- Login admin
+- Protected admin route
+- Dashboard admin
+- Ringkasan pesanan
+- Ringkasan pendapatan
+- Daftar pesanan masuk
+- Search dan filter pesanan
+- Ubah status pesanan
+- Cetak struk pesanan
+- Kelola menu
+- Tambah menu
+- Edit menu
+- Hapus menu
+- Aktif/nonaktifkan menu
+- Validasi stok menu
 
-## Expanding the ESLint configuration
+## Teknologi
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+- React
+- Vite
+- Tailwind CSS
+- React Router DOM
+- React Hot Toast
+- SweetAlert2
+- LocalStorage
+- Vercel
+
+Cara Menjalankan Project
+
+Install dependencies:
+
+npm install
+
+Jalankan development server:
+
+npm run dev
+
+Build project:
+
+npm run build
