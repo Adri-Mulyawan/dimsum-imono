@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import toast from "react-hot-toast";
 
+import { createOrder } from "@/Services/orderService";
 import { formatCurrency } from "@/Utils/formatCurrency";
 import { getStorage, removeStorage, setStorage } from "@/Utils/storage";
 
@@ -31,6 +32,8 @@ const paymentOptions = [
 const Checkout = () => {
   const navigate = useNavigate();
   const cart = getStorage("cart", []);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [form, setForm] = useState({
     name: "",
@@ -88,7 +91,7 @@ Catatan:
 ${form.note || "-"}`;
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (cart.length === 0) {
@@ -111,32 +114,50 @@ ${form.note || "-"}`;
       return;
     }
 
-    const newOrder = {
-      id: `ORD-${Date.now()}`,
-      customer: form,
-      items: cart,
-      total: totalPrice,
-      status: "Menunggu",
-      paymentStatus: "Belum Dibayar",
-      estimatedTime,
-      createdAt: new Date().toLocaleString("id-ID"),
-    };
+    try {
+      setIsSubmitting(true);
 
-    const oldOrders = getStorage("orders", []);
-    setStorage("orders", [newOrder, ...oldOrders]);
+      const orderData = {
+        id: `ORD-${Date.now()}`,
+        customer: form,
+        items: cart,
+        total: totalPrice,
+        totalItem,
+        status: "Menunggu",
+        paymentStatus: "Belum Dibayar",
+        estimatedTime,
+        createdAt: new Date().toLocaleString("id-ID"),
+        createdAtTimestamp: Date.now(),
+      };
 
-    const message = encodeURIComponent(buildWhatsappMessage());
-    window.open(
-      `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${message}`,
-      "_blank"
-    );
+      const firebaseId = await createOrder(orderData);
 
-    removeStorage("cart");
-    window.dispatchEvent(new Event("cartUpdated"));
-    setStorage("lastOrder", newOrder);
+      const savedOrder = {
+        ...orderData,
+        firebaseId,
+      };
 
-    toast.success("Pesanan berhasil dibuat");
-    navigate("/success");
+      const oldOrders = getStorage("orders", []);
+      setStorage("orders", [savedOrder, ...oldOrders]);
+
+      const message = encodeURIComponent(buildWhatsappMessage());
+      window.open(
+        `https://wa.me/${STORE_WHATSAPP_NUMBER}?text=${message}`,
+        "_blank"
+      );
+
+      removeStorage("cart");
+      window.dispatchEvent(new Event("cartUpdated"));
+      setStorage("lastOrder", savedOrder);
+
+      toast.success("Pesanan berhasil dibuat");
+      navigate("/success");
+    } catch (error) {
+      console.error(error);
+      toast.error("Gagal membuat pesanan. Coba lagi.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -299,9 +320,14 @@ ${form.note || "-"}`;
 
               <button
                 type="submit"
-                className="rounded-2xl bg-red-800 px-6 py-4 font-black text-white shadow-md transition hover:-translate-y-1 hover:bg-red-900"
+                disabled={isSubmitting}
+                className={`rounded-2xl px-6 py-4 font-black text-white shadow-md transition ${
+                  isSubmitting
+                    ? "cursor-not-allowed bg-gray-400"
+                    : "bg-red-800 hover:-translate-y-1 hover:bg-red-900"
+                }`}
               >
-                Kirim ke WhatsApp
+                {isSubmitting ? "Mengirim Pesanan..." : "Kirim ke WhatsApp"}
               </button>
             </div>
           </form>
@@ -394,8 +420,8 @@ ${form.note || "-"}`;
               </div>
 
               <div className="mt-6 rounded-2xl bg-red-50 p-4 text-sm leading-6 text-red-900">
-                Pesanan akan dikirim melalui WhatsApp toko. Pastikan data kamu
-                sudah benar sebelum menekan tombol kirim.
+                Pesanan akan disimpan ke sistem dan dikirim melalui WhatsApp
+                toko.
               </div>
             </>
           )}
