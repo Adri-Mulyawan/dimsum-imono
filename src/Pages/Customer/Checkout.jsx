@@ -6,7 +6,7 @@ import { createOrder } from "@/Services/orderService";
 import { formatCurrency } from "@/Utils/formatCurrency";
 import { getStorage, removeStorage, setStorage } from "@/Utils/storage";
 
-const STORE_WHATSAPP_NUMBER = "6281234567890";
+const STORE_WHATSAPP_NUMBER = "6285526005678";
 
 const paymentOptions = [
   {
